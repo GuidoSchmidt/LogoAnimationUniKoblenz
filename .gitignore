@@ -1,0 +1,5 @@
+# CMake
+*.txt.user
+
+# Binaries
+/bin/ofLogoAnimation
