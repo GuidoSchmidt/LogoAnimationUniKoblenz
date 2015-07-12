@@ -2,4 +2,7 @@
 *.txt.user
 
 # Binaries
-/bin/ofLogoAnimation
+bin/ofLogoAnimation
+
+# Build folder
+/build
