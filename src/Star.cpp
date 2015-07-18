@@ -14,10 +14,10 @@ void Star::update()
     size += sin(ofGetSeconds() + timeOffset)/100.0;
 }
 
-void Star::draw() const
+void Star::draw(int alpha) const
 {
     ofFill();
-    ofSetColor(255, 255, 255);
+    ofSetColor(255, 255, 255, alpha * (1.0 - position.y/ofGetHeight()));
     ofCircle(position.x, position.y, size);
     ofNoFill();
 }

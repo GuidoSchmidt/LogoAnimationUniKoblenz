@@ -13,7 +13,7 @@ class Star
 
   public:
     Star(ofVec2f position, float size, int timeOffset);
-    void draw() const;
+    void draw(int alpha) const;
     void update();
     inline ofVec2f getPosition() const { return position; } ;
     inline float   getSize() const { return size;  };

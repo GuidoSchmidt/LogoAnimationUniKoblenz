@@ -5,14 +5,16 @@ cmake_minimum_required(VERSION 2.8)
 
 include(../of/openFrameworks.cmake)
 
-ofxaddon(ofxTween)
 ofxaddon(ofxYahooWeather)
-ofxaddon(ofxUI)
-ofxaddon(ofxXmlSettings)
+ofxaddon(ofxTween)
+ofxaddon(ofxGui)
+ofxaddon(ofxLayerMask)
+ofxaddon(ofxAssimpModelLoader)
 
 set(SOURCES
-    src/main.cpp
     src/Star.cpp
+    src/Rain.cpp
+    src/main.cpp
     src/ofApp.cpp
 )
 

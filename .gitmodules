@@ -1,0 +1,9 @@
+[submodule "ofxTween"]
+	path = ofxTween
+	url = git@github.com:arturoc/ofxTween.git
+[submodule "ofxYahooWeather"]
+	path = ofxYahooWeather
+	url = git@github.com:Hzikajr/ofxYahooWeather.git
+[submodule "ofxUI"]
+	path = ofxUI
+	url = git@github.com:rezaali/ofxUI.git
