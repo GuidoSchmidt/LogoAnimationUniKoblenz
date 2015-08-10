@@ -7,12 +7,14 @@
 #include "ofxTween.h"
 #include "ofxYahooWeather.h"
 #include "ofxGui.h"
+#include "ofxUI.h"
 #include "ofxAssimpModelLoader.h"
 #include "ofVboMesh.h"
 #include "ofEasyCam.h"
 
 #include "Star.h"
 #include "Rain.h"
+#include "Snow.h"
 
 class ofApp : public ofBaseApp
 {
@@ -29,10 +31,11 @@ class ofApp : public ofBaseApp
     ofTrueTypeFont font;
 
     // Elements
-    std::vector<Star*> stars;
-    Rain* rain;
+    std::vector<Star*>   stars;
+    Rain*                rain;
+    Snow*                snow;
     ofxAssimpModelLoader model;
-    ofMesh mesh;
+    ofMesh               mesh;
 
   public:
     void setup  ();
@@ -67,9 +70,15 @@ class ofApp : public ofBaseApp
     float timeFloatFromString(std::string sunrise);
 
     // UI
-    ofxPanel gui;
+    ofxPanel       gui;
     ofxFloatSlider daytimeSlide;
     ofxButton      daytimeAnimate;
+
+    // UI2
+    ofxUISuperCanvas*  guiCanvas;
+    ofxUIDropDownList* dropDownList;
+    ofxUIButton*       animateButton;
+    void guiEvent(ofxUIEventArgs &event);
 
     void daytimeChanged(float& daytime);
     void daytimeAnimated();
