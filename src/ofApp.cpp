@@ -8,6 +8,7 @@
 #include <string>
 #include <chrono>
 
+
 ofImage img_logoUniKoblenz;
 ofImage img_errorBackground;
 ofImage img_noiseBackground;
@@ -25,11 +26,12 @@ bool    isSun{false};
 bool    isThunderstorm{false};
 bool    connectionIssue{false};
 
-bool    animateDaytime{false};
+bool    animateDaytime{true};
 bool    drawGui{false};
 int     starsAlpha{255};
-ofParameter<float> dayTimeFromGui{0.0};
-float   sunsetTime, sunriseTime;
+ofParameter<float> dayTimeFromGui{10.0};
+float   nowTime, sunsetTime, sunriseTime;
+
 
 // Map for lookup of Yahoo weather codes
 auto buildConditionCodeMap() -> std::map<int, tuple<string, string> >
@@ -173,15 +175,28 @@ void ofApp::setup()
     ofSetCircleResolution(50);
 
     // Images
-    img_logoUniKoblenz.load("logo_uni-koblenz.jpg");
+    img_logoUniKoblenz.load("logo.png");
     img_errorBackground.load("error.png");
     img_noiseBackground.load("noise.png");
 
+    // Daytime
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    std::time_t now_t = std::chrono::system_clock::to_time_t(now);
+    std::string current_time = ctime(&now_t);
+    std::size_t colonA = current_time.find_first_of(':');
+    int hours = std::stoi(current_time.substr(colonA-2, 2));
+    cout << "H: " << hours << endl;
+    int minutes = std::stoi(current_time.substr(colonA+1, 2));
+    nowTime = hours + minutes/60.0;
+    nowTime = 23.5;
+
     // Tweens
-    const unsigned delay    = 2000;
+    const unsigned delay    = 3500;
     const unsigned duration = 5000;
-    tweenLogoBlend.setParameters(1, easingCubic, ofxTween::easeOut, 0, 255, duration, delay);
-    tweenDaytime.setParameters(0, easingLinear, ofxTween::easeInOut, 0, 24.0, 24000, 0.0);
+    tweenLogoBackgroundBlend.setParameters(0, easingCubic, ofxTween::easeOut, 0, 255, duration * 2, delay);
+    tweenLogoBlend.setParameters(0, easingCubic, ofxTween::easeOut, 0, 255, duration * 2, delay);
+    tweenLogoPositionY.setParameters(0, easingCubic, ofxTween::easeOut, 150, 0, duration * 2, delay);
+    tweenDaytime.setParameters(0, easingLinear, ofxTween::easeInOut, nowTime, 24.0, 24000, 0.0);
 
     // Fonts
     font.loadFont("InputMono-Regular.ttf", 20);
@@ -200,10 +215,8 @@ void ofApp::setup()
     std::string sunset = yahooWeather.getSunset();
     sunsetTime = timeFloatFromString(sunset);
     std::cout << "Sunset @ " << sunsetTime << std::endl;
-    // Daytime
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    std::time_t now_t = std::chrono::system_clock::to_time_t(now);
-    std::cout << "Daytime: " << std::ctime(&now_t);
+
+
     // Wind
     auto windSpeedString = yahooWeather.getWindSpeed();
     auto windDirectionString   = yahooWeather.getWindDirection();
@@ -220,19 +233,25 @@ void ofApp::setup()
     // Weather condition
     int condititonCode = yahooWeather.getWeatherConditionCode();
     // @TODO Testing
-    condititonCode     = 40;
+    condititonCode     = 41;
     auto conditionCodeMap = buildConditionCodeMap();
-    std::cout << std::get<1>( conditionCodeMap[condititonCode] ) << std::endl;
     std::string conditionCodeString = std::get<1>( conditionCodeMap[condititonCode] );
+    std::cout << "Wether condition: " << conditionCodeString << std::endl;
 
     // UI
     daytimeSlide.addListener(this, &ofApp::daytimeChanged);
     daytimeAnimate.addListener(this, &ofApp::daytimeAnimated);
+    rainButton.addListener(this, &ofApp::weatherChange);
+    cloudButton.addListener(this, &ofApp::weatherChange);
+    snowButton.addListener(this, &ofApp::weatherChange);
     gui.setup();
     ofColor guiBackgroundColor(255, 255, 255);
     gui.setBackgroundColor(guiBackgroundColor);
     gui.add(dayTimeFromGui.set("Daytime", 0.0, 0.0, 24.0));
     gui.add(daytimeAnimate.setup("Animate", 30, 30));
+    gui.add(rainButton.setup("Rain", 20, 20));
+    gui.add(cloudButton.setup("Cloudy", 20, 20));
+    gui.add(snowButton.setup("Snow", 20, 20));
 
     // UI2
     guiCanvas = new ofxUISuperCanvas{"Weather Codes"};
@@ -322,6 +341,12 @@ void ofApp::setup()
 
     // Snow
     snow = new Snow{200, 3.8f};
+
+    // Clouds
+    for(unsigned c=0; c < 12; c++)
+    {
+        clouds.push_back(new Cloud{ofVec2f{ofRandom(0, ofGetWidth()), ofRandom(-5, ofGetHeight()/3)}} );
+    }
 }
 
 void ofApp::guiEvent(ofxUIEventArgs &e)
@@ -339,6 +364,26 @@ void ofApp::daytimeChanged(float& daytime)
     dayTimeFromGui = daytime;
 }
 
+void ofApp::weatherChange(const void* sender)
+{
+    ofxButton* button = (ofxButton*)sender;
+    string senderName = button->getName();
+    if(senderName == "Rain" )
+    {
+        isRain = !isRain;
+    }
+    if(senderName == "Cloudy")
+    {
+        isCloudy = !isCloudy;
+    }
+    if(senderName == "Snow")
+    {
+        isSnow = !isSnow;
+    }
+
+    cout << "Weather changed" << endl;
+}
+
 void ofApp::daytimeAnimated()
 {
     animateDaytime = true;
@@ -354,7 +399,7 @@ void ofApp::update()
     if(tweenDaytime.isCompleted())
     {
         animateDaytime = false;
-        tweenDaytime.setParameters(0, easingLinear, ofxTween::easeInOut, 0, 24.0, 24000, 0.0);
+        tweenDaytime.setParameters(0, easingLinear, ofxTween::easeInOut, nowTime, 24.0, 24000, 0.0);
     }
 }
 
@@ -406,7 +451,7 @@ void ofApp::draw()
         ofSetCircleResolution(100);
         ofFill();
         ofColor sunColor = ofColor{255, 252, 218};
-        ofSetColor(dynamicBackgroundColor);
+        ofSetColor(sunColor, 255);
         float sunSize = (0.6f * sin((dayTimeFromGui/24.0f) * M_PI) + 1.0f) * 60.0f;
         float sunPosY = (ofGetHeight() *  2.0f/3.0f) * sin(dayTimeFromGui/24.0f * M_PI);
         ofCircle(ofGetWidth()/2 + 200, ofGetHeight() + sunSize - sunPosY, sunSize);
@@ -419,11 +464,6 @@ void ofApp::draw()
         ofCircle(ofGetWidth()/2 - 200, ofGetHeight() + moonSize - moonPosY, moonSize);
 
         /*
-        unsigned transparency = 0; //tweenLinear.update();
-        ofSetColor(transparency, transparency, transparency);
-        ofRect(0, 0, ofGetWidth(), ofGetHeight());
-        img_logoUniKoblenz.draw(0, 0, ofGetWidth(), ofGetHeight());
-
         ofPushMatrix();
         ofTranslate(model.getPosition());
         ofRotate(ofGetMouseX(), 0, 1, 0);
@@ -454,6 +494,13 @@ void ofApp::draw()
             ofSetColor(255, 255, 255, 128);
             ofRect(0, 0, ofGetWidth(), ofGetHeight());
         }
+        if(isCloudy)
+        {
+            for(auto cloud : clouds)
+            {
+                cloud->draw();
+            }
+        }
         if(isWindy)
         {
             //@TODO
@@ -471,12 +518,25 @@ void ofApp::draw()
             //@TODO
         }
 
+        // Logo
+        unsigned transparencyOfBackground = tweenLogoBackgroundBlend.update();
+        ofSetColor(0, 0, 0, transparencyOfBackground);
+        ofRect(0, 0, ofGetWidth(), ofGetHeight());
+        unsigned transparencyOfLogo = tweenLogoBlend.update();
+        ofSetColor(255, 255, 255, transparencyOfLogo);
+        unsigned posY = tweenLogoPositionY.update();
+        img_logoUniKoblenz.draw(ofGetWidth()/2 - img_logoUniKoblenz.getWidth()/2,
+                                ofGetHeight()/2 - img_logoUniKoblenz.getHeight()/2 + posY,
+                                img_logoUniKoblenz.getWidth(),
+                                img_logoUniKoblenz.getHeight());
+
         //--- UI
         if(drawGui)
         {
             gui.draw();
         }
     }
+
 }
 
 void ofApp::exit()

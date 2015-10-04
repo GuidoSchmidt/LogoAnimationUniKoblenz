@@ -19,6 +19,7 @@ set(SOURCES
     src/Star.cpp
     src/Rain.cpp
     src/Snow.cpp
+    src/Cloud.cpp
     src/main.cpp
     src/ofApp.cpp
 )

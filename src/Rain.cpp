@@ -19,7 +19,7 @@ Rain::Rain(const unsigned _rainAmount,
         ofVec2f* direction = new ofVec2f{particle->x - (particle->x + ofRandom(-5, 5) + windSpeed * 3), particle->y - (particle->y + dropLength)};
         direction->normalize();
         rainDropDirections.push_back(direction);
-        lineWidths.push_back(ofRandom(0.5f, 2.5f));
+        lineWidths.push_back(ofRandom(0.5f, 4.5f));
         timeshifts.push_back(ofRandom(-250, 250));
     }
 }

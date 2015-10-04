@@ -15,12 +15,15 @@
 #include "Star.h"
 #include "Rain.h"
 #include "Snow.h"
+#include "Cloud.h"
 
 class ofApp : public ofBaseApp
 {
   private:
     // Tweening
+    ofxTween        tweenLogoBackgroundBlend;
     ofxTween        tweenLogoBlend;
+    ofxTween        tweenLogoPositionY;
     ofxTween        tweenDaytime;
     ofxEasingBack   easingBack;
     ofxEasingLinear easingLinear;
@@ -32,6 +35,7 @@ class ofApp : public ofBaseApp
 
     // Elements
     std::vector<Star*>   stars;
+    std::vector<Cloud*>  clouds;
     Rain*                rain;
     Snow*                snow;
     ofxAssimpModelLoader model;
@@ -73,6 +77,9 @@ class ofApp : public ofBaseApp
     ofxPanel       gui;
     ofxFloatSlider daytimeSlide;
     ofxButton      daytimeAnimate;
+    ofxButton      rainButton;
+    ofxButton      snowButton;
+    ofxButton      cloudButton;
 
     // UI2
     ofxUISuperCanvas*  guiCanvas;
@@ -82,4 +89,5 @@ class ofApp : public ofBaseApp
 
     void daytimeChanged(float& daytime);
     void daytimeAnimated();
+    void weatherChange(const void* sender);
 };
